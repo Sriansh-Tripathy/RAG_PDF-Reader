@@ -56,10 +56,17 @@ import PyPDF2
 import time
 ````
 Streamlit: Used to create the web interface.
+
 torch: Though imported, it is not used directly in the code. It might be necessary for the Ollama model, which utilizes PyTorch.
+
 ollama: Used to interact with the gemma2:2b model for generating answers.
+
 langchain.text_splitter: Helps split the extracted text into manageable chunks.
+
 langchain_community.vectorstores.FAISS: Used to build a vector store for efficient retrieval.
+
 langchain_community.embeddings.OllamaEmbeddings: Generates embeddings for the text chunks using the gemma2:2b model.
+
 PyPDF2: Used to extract text from the uploaded PDF files.
+
 time: Used for simulating delays and updating the UI.
