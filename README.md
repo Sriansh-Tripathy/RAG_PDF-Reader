@@ -42,7 +42,7 @@ The app will retrieve relevant information and generate a concise answer using t
 ## Code Explanation
 This section provides a detailed walkthrough of the key components and functionality of the code in this repository.
 
-1. Importing Libraries
+### 1. Importing Libraries
 The code begins by importing essential libraries:
 ```bash
 import streamlit as st
@@ -70,3 +70,90 @@ langchain_community.embeddings.OllamaEmbeddings: Generates embeddings for the te
 PyPDF2: Used to extract text from the uploaded PDF files.
 
 time: Used for simulating delays and updating the UI.
+### 2. Loading and Processing the PDF
+The load_pdf function reads the uploaded PDF and extracts the text:
+```bash
+def load_pdf(file):
+    reader = PyPDF2.PdfReader(file)
+    total_pages = len(reader.pages)
+    text = ""
+
+    progress_bar = st.progress(0)
+    status_text = st.empty()
+
+    for i, page in enumerate(reader.pages):
+        text += page.extract_text()
+        progress_bar.progress((i + 1) / total_pages)
+        status_text.text(f"Reading page {i + 1} of {total_pages}")
+        time.sleep(0.05)
+
+    progress_bar.empty()
+    status_text.text("PDF loading complete.")
+    return text
+````
+### 3. Splitting Text into Chunks
+The split_pdf_text function splits the extracted text into smaller chunks:
+```bash
+def split_pdf_text(pdf_text):
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    split_texts = text_splitter.split_text(pdf_text)
+    return [Document(page_content=chunk) for chunk in split_texts]
+````
+Text Chunking: The text is divided into chunks of 1000 characters with a 200-character overlap to maintain context between chunks.
+
+Document Objects: Each chunk is stored in a Document object.
+### 4. Creating a Retriever
+The create_retriever function builds a retriever using FAISS and the Ollama embeddings:
+```bash
+def create_retriever(documents):
+    embeddings = OllamaEmbeddings(model="gemma2:2b")
+    vectorstore = FAISS.from_documents(documents, embeddings)
+    return vectorstore.as_retriever()
+
+````
+Ollama Embeddings: Generates embeddings for the text chunks using the gemma2:2b model.
+
+FAISS Vectorstore: Indexes these embeddings for efficient retrieval based on user queries.
+### 5. Generating Answers with RAG
+The rag_chain function performs the core RAG operation:
+```bash
+def rag_chain(question, retriever):
+    retrieved_docs = retriever.invoke(question)
+    formatted_context = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    return ollama_llm(question, formatted_context)
+````
+Retrieving Context: The retriever fetches relevant chunks from the vector store.
+
+Generating Responses: The ollama_llm function is called to generate a concise answer based on the retrieved context.
+### 6. Streamlit Interface
+Finally, the Streamlit app ties everything together:
+```bash
+st.title("RAG with gemma2:2b")
+st.write("Ask questions about the provided context")
+
+if 'documents' not in st.session_state:
+    st.session_state.documents = []
+    st.session_state.retriever = None
+
+uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
+
+if uploaded_file:
+    with st.spinner("Processing PDF..."):
+        pdf_text = load_pdf(uploaded_file)
+        st.session_state.documents = split_pdf_text(pdf_text)
+        st.session_state.retriever = create_retriever(st.session_state.documents)
+
+    question = st.text_input("Enter your question here...")
+
+    if question:
+        with st.spinner("Retrieving answer..."):
+            answer = rag_chain(question, st.session_state.retriever)
+            st.write("Answer:", answer)
+````
+Title and Description: The app displays a title and a brief description.
+
+Session State: Documents and retrievers are stored in the session state to avoid redundant processing.
+
+PDF Upload: Users can upload a PDF, which is processed, and its contents are indexed.
+
+Question Input: Users can input questions, which are answered based on the retrieved context.
