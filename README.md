@@ -21,7 +21,6 @@ User-friendly Streamlit interface with real-time progress tracking.
 ### Clone the Repository
 ```bash
 git clone https://github.com/Sriansh-Tripathy/RAG_PDF-Reader.git
-cd RAG_PDF-Reader
 ````
 ### Install Requirements
 ```bash
@@ -31,3 +30,10 @@ pip install -r requirements.txt
 ```bash
 streamlit run app.py
 ````
+###Upload a PDF
+Click on "Upload a PDF file" to select your document.
+The app will process the PDF, displaying a progress bar during the extraction.
+
+###Ask Questions
+After the PDF is processed, you can input your question in the text box provided.
+The app will retrieve relevant information and generate a concise answer using the gemma2:2b model.
