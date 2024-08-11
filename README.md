@@ -18,3 +18,6 @@ To set up the application on your local machine:
 ```bash
 git clone https://github.com/Sriansh-Tripathy/RAG_PDF-Reader.git
 cd RAG_PDF-Reader
+
+### Install the Requirements
+pip install -r requirements.txt
